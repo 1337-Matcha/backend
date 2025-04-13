@@ -29,6 +29,7 @@ const saveOTP = async (user: any, otp: number) => {
 	await userService.update(
 		{ otp: hashedOTP, otp_expiry },
 		{ email: user.email },
+		true
 	);
 };
 
@@ -55,6 +56,7 @@ export const verifyOTP = async (user: any, otp: string) => {
 			await userService.update(
 				{ otp: null, otp_expiry: null },
 				{ email: user.email },
+				true
 			);
 			return true;
 		}

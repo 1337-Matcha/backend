@@ -1,13 +1,10 @@
 import jwt from 'jsonwebtoken';
-import cookie from 'cookie';
+// import cookie from 'cookie';
+const cookie = require('cookie');
 import { CryptoUtil } from '../utils/crypto.utils';
 import * as userService from '../../modules/user/services/user.service';
 import { UserNotFoundException } from '../exceptions/user.exception';
-import {
-	AccessTokenNotFoundException,
-	InvalidRefreshTokenException,
-} from '../exceptions/auth.exception';
-// import { NextFunction } from 'express';
+import { AccessTokenNotFoundException } from '../exceptions/auth.exception';
 import { NextFunction, Response } from 'express';
 import HttpStatus from 'http-status';
 
@@ -16,7 +13,7 @@ export default async function authMiddleware(
 	res: any,
 	next: NextFunction,
 ) {
-	const cookies = cookie.parse(req.headers.cookie || '');
+	const cookies = req.cookies;
 	const { rToken, aToken } = cookies;
 
 	try {
@@ -68,7 +65,7 @@ export default async function authMiddleware(
 				next();
 			} catch (refreshError) {
 				clearCookies(res);
-				res.status(400).json({
+				res.status(401).json({
 					error: 'Session duration expired. Please login again.',
 				});
 			}
@@ -76,8 +73,12 @@ export default async function authMiddleware(
 			err.name === 'TokenExpiredError' ||
 			err.name === 'JsonWebTokenError'
 		) {
-			throw new InvalidRefreshTokenException();
+			clearCookies(res);
+			res.status(HttpStatus.UNAUTHORIZED).json({
+				error: 'Session expired. Please login again.',
+			});
 		} else {
+			clearCookies(res);
 			res.status(HttpStatus.UNAUTHORIZED).json({
 				error: err.message,
 			});
@@ -103,7 +104,7 @@ const clearCookies = (res: any) => {
 	res.setHeader('Set-Cookie', [access_token, refresh_token]);
 };
 
-const setCookies = (
+export const setCookies = (
 	tName: string,
 	duration: number,
 	token: string,

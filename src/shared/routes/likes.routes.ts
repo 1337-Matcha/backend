@@ -4,14 +4,14 @@ import {
 	remove,
 	getLikes,
 	getLikesWithRelation,
+	hasLikedUser,
 } from '../../modules/like/like.controller';
-import { romoveLikeSchema } from '../../modules/like/validation/like.validation';
-import { validateData } from '../utils/validationMiddleware';
 
 const router = express.Router();
 
 router.post('/', save);
-router.post('/remove', validateData(romoveLikeSchema), remove);
+router.post('/remove', remove);
 router.get('/', getLikes);
-router.get('/with-relation', getLikesWithRelation);
+router.post('/hasLiked', hasLikedUser);
+router.get('/relations', getLikesWithRelation);
 export default router;

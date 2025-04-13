@@ -1,5 +1,6 @@
 import { repository } from '../../../repository';
 import { IRelations } from '../../../shared/utils/interfaces';
+import * as userMetrics from './user-metrics.service';
 
 export const getViewers = async (id: string): Promise<any> => {
 	try {
@@ -21,46 +22,88 @@ export const getViewersCount = async (id: string): Promise<number> => {
 		throw err;
 	}
 };
-export const getViewersWithRelations = async (id: string): Promise<any[]> => {
+export const getViewersWithRelations = async (
+	id: string,
+	offset: number,
+	limit: number,
+): Promise<any[]> => {
 	try {
 		const relations: IRelations[] = [
 			{
 				tableName: 'users',
-				foreignKey: 'id',
+				foreignKey: 'id', // viewerid -> users.id
 			},
-		];
-		const conditions = [
 			{
-				user_id: id,
+				tableName: 'profile',
+				foreignKey: 'user_id', // users.id -> profiles.user_id
+			},
+			{
+				tableName: 'locations',
+				foreignKey: 'user_id',
 			},
 		];
-		const keys = relations
-			.map(
-				(relation: any, index: number) =>
-					`profileviews.user_id= '${conditions[index].user_id}'`,
-			)
-			.join(' AND ');
-		const viewers = await repository.findWithRelationsAndConditions(
+
+		const conditions = [{ user_id: id }];
+
+		const keys = `profileviews.user_id = '${id}'`;
+
+		let viewers = await repository.findWithRelationsAndConditionsPagination(
 			'profileviews',
-			'viewerid',
+			'viewerid', // join column from profileviews
 			relations,
 			keys,
+			offset,
+			limit,
 		);
+		const apiURL = process.env.API_URL + '/api/';
+
 		viewers.forEach(viewer => {
-			[
-				'user_id',
-				'rtoken',
-				'password',
-				'otp',
-				'otp_expiry',
-				'created_at',
-				'updated_at',
-				'verified',
-			].forEach(key => {
-				delete viewer[key];
-			});
+			viewer.mainPicture = apiURL + viewer.mainpicture;
+			(viewer.location = {
+				address: viewer.address,
+				lat: viewer.lat,
+				lng: viewer.lng,
+				visibility: viewer.visibility,
+				searchradius: viewer.searchradius,
+				sharelocation: viewer.sharelocation,
+			}),
+				[
+					'user_id',
+					'rtoken',
+					'password',
+					'otp',
+					'otp_expiry',
+					'created_at',
+					'updated_at',
+					'verified',
+					'provider',
+					'pictures',
+					'visibility',
+					'address',
+					'lat',
+					'lng',
+					'visibility',
+					'searchradius',
+					'sharelocation',
+					'mainpicture',
+				].forEach(key => {
+					delete viewer[key];
+				});
 		});
+
 		return viewers;
+	} catch (err: any) {
+		throw err;
+	}
+};
+
+export const findRecentView = async (userId: string, viewerId: string) => {
+	try {
+		const recentView = await repository.findByCondition('profileviews', {
+			user_id: userId,
+			viewerid: viewerId,
+		});
+		return recentView;
 	} catch (err: any) {
 		throw err;
 	}
@@ -68,7 +111,9 @@ export const getViewersWithRelations = async (id: string): Promise<any[]> => {
 
 export const save = async (body: any) => {
 	try {
-		return await repository.save('profileviews', body);
+		const res = await repository.save('profileviews', body);
+		const updateMetric = await userMetrics.updateOrInsert(body.viewerid);
+		return res;
 	} catch (err: any) {
 		throw err;
 	}

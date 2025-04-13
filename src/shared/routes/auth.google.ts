@@ -31,6 +31,7 @@ passport.use(
 						await userService.update(
 							{ provider: 'google', verified: true },
 							{ id: user.id },
+							true
 						);
 					}
 				} else {
@@ -51,6 +52,7 @@ passport.use(
 				const result = await userService.update(
 					{ rToken },
 					{ id: user.id },
+					true
 				);
 				if (!result) throw new RepositoryExceptionUpdate();
 				return done(null, { user, aToken, rToken });

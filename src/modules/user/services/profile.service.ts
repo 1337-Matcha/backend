@@ -2,7 +2,9 @@ import { repository } from '../../../repository';
 import { ProfileDto, ProfileUpdateDto } from '../dto/profile.dto';
 
 const save = async (profile: ProfileDto) => {
-	return await repository.save('profile', profile);
+	return await repository.updateOrInsert('profile', profile, {
+		user_id: profile.user_id,
+	});
 };
 
 const get = async (user_id: string): Promise<any> => {
@@ -13,8 +15,9 @@ const get = async (user_id: string): Promise<any> => {
 };
 
 const update = async (profileUpdateDto: ProfileUpdateDto) => {
-	const user_id = profileUpdateDto.id;
-	delete profileUpdateDto.id;
+	const user_id = profileUpdateDto.user_id;
+	delete profileUpdateDto.user_id;
+
 	const res: boolean = await repository.update(
 		'profile',
 		profileUpdateDto,

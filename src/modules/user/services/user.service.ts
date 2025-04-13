@@ -1,12 +1,12 @@
 import { repository } from '../../../repository';
 import { IRelations } from '../../../shared/utils/interfaces';
 import bcrypt from 'bcrypt';
-import { CreateUserDto } from '../dto/user.dto';
+import { CreateUserDto, GetUserWithRelationsDTO } from '../dto/user.dto';
 
 const save = async (userData: CreateUserDto) => {
 	try {
 		// Create a copy of the user data to avoid mutating the original object
-		const userDataCopy = { ...userData };
+		const userDataCopy = { ...userData, email: userData.email.toLowerCase() };
 
 		// Hash the password if it exists
 		if (userDataCopy.password) {
@@ -59,9 +59,20 @@ const comparePassword = async (password: string, hashedPassword: string) => {
 	}
 };
 
-const update = async (data: any, condition: any) => {
+const update = async (
+	data: any,
+	condition: any,
+	distinct: boolean,
+	differentClause: boolean = true,
+) => {
 	try {
-		return await repository.update('users', data, condition, true);
+		return await repository.update(
+			'users',
+			data,
+			condition,
+			distinct,
+			differentClause,
+		);
 	} catch (error) {
 		throw error;
 	}
@@ -82,6 +93,128 @@ const getAllUsersWithRelations = async () => {
 	return res;
 };
 
+const getUserWithRelations = async (id: string) => {
+	const relations: IRelations[] = [
+		{
+			tableName: 'profile',
+			foreignKey: 'user_id',
+		},
+		{
+			tableName: 'locations',
+			foreignKey: 'user_id',
+		},
+		{
+			tableName: 'sexual_preferences',
+			foreignKey: 'user_id',
+		},
+	];
+	const res = await repository.findOneWithRelations(
+		'users',
+		'id',
+		id,
+		relations,
+	);
+	delete res.password;
+	delete res.rtoken;
+	delete res.otp;
+	delete res.otp_expiry;
+	delete res.created_at;
+	delete res.updated_at;
+	delete res.provider;
+	delete res.email;
+	delete res.verified;
+	return transformUserData(res);
+};
+
+export const getUserWithRelationsNEW = async (id: string) => {
+	const relations: IRelations[] = [
+		{
+			tableName: 'profile',
+			foreignKey: 'user_id',
+		},
+		{
+			tableName: 'locations',
+			foreignKey: 'user_id',
+		},
+		{
+			tableName: 'sexual_preferences',
+			foreignKey: 'user_id',
+		},
+	];
+	const res = await repository.findOneWithRelationsSeparateQueries(
+		'users',
+		'id',
+		id,
+		relations,
+	);
+	console.log('-------------------------------------------------getUserWithRelationsNEW', res);
+	delete res.users;
+	return res;
+};
+
+function transformUserData(raw: any): any {
+	const apiURL = process.env.API_URL + '/api/';
+	raw.pictures = raw.pictures?.map((picture: string) => {
+		return apiURL + picture;
+	});
+	return {
+		id: raw.user_id,
+		firstname: raw.firstname,
+		lastname: raw.lastname,
+		username: raw.username,
+		gender: raw.gender,
+		birthdate: raw.birthdate ?? '',
+		sexualPreferences: raw.preferences || [],
+		sexualOrientation: raw.sexual_orientation,
+		bio: raw.bio,
+		interests: raw.interests || [],
+		location: {
+			address: raw.address,
+			lat: raw.lat,
+			lng: raw.lng,
+			visibility: raw.visibility,
+			searchRadius: raw.searchradius,
+			shareLocation: raw.sharelocation,
+		},
+		pictures: raw.pictures || [],
+		mainPicture: apiURL + raw.mainpicture || null,
+	};
+}
+
+export const saveUserWithRelations = async (
+	userProfile: GetUserWithRelationsDTO,
+) => {
+	try {
+	} catch (error) {
+		throw error;
+	}
+};
+
+export const searchUsersProfile = async (query: string) => {
+	try {
+		const relations: IRelations[] = [
+			{
+				tableName: 'profile',
+				foreignKey: 'user_id',
+			},
+		];
+		const condition = `(users.username ILIKE '%${query}%' OR 
+			users.email ILIKE '%${query}%' OR 
+			CONCAT(users.firstname, ' ', users.lastname) ILIKE '%${query}%') OR
+			users.firstname ILIKE '%${query}%' OR users.lastname ILIKE '%${query}%'
+			`;
+		const users = await repository.findWithRelationsAndConditions(
+			'users',
+			'id',
+			relations,
+			condition,
+		);
+		return users.map(user => transformUserData(user));
+	} catch (error) {
+		throw error;
+	}
+};
+
 export {
 	save,
 	findByEmail,
@@ -90,4 +223,5 @@ export {
 	update,
 	getAllUsersWithRelations,
 	hashPassword,
+	getUserWithRelations,
 };

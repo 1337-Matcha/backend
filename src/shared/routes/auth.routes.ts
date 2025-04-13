@@ -5,6 +5,7 @@ import {
 	verifyEmail,
 	googleAuthentication,
 	tokenInfo,
+	logout,
 } from '../../modules/auth/auth.controller';
 import { validateData } from '../utils/validationMiddleware';
 import { loginSchema } from '../../modules/auth/auth.validation';
@@ -29,5 +30,6 @@ router.get(
 	googleAuthentication,
 );
 router.get('/token/info', tokenInfo);
+router.get('/logout', logout);
 
 export default router;

@@ -7,6 +7,7 @@ const update = async (
 	data: any,
 	condition: any,
 	distinct?: boolean,
+	dClause: boolean = true,
 ) => {
 	try {
 		const keys = Object.keys(data);
@@ -32,11 +33,11 @@ const update = async (
 			.map((key, index) => `${key} = $${keys.length + index + 1}`)
 			.join(' AND ');
 
-		const query = `UPDATE ${tableName} SET ${setClause} WHERE ${conditionClause} AND ${differentClause}`;
+		const query = `UPDATE ${tableName} SET ${setClause} WHERE ${conditionClause}
+			${dClause ? ` AND ${differentClause}` : ''}`;
 		// Combine values from data and condition for the query
 		const combinedValues = [...values, ...conditionValues];
 		const result = await (pool as pg.Pool).query(query, combinedValues);
-
 		if (result.rowCount === 0) {
 			console.log(
 				`No record found in ${tableName} with the given condition:`,

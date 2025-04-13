@@ -1,28 +1,13 @@
-import { save } from './save';
-import { update, updateOrInsert } from './update';
-import {
-	count,
-	findAll,
-	findById,
-	findOne,
-	findOneByCondition,
-	findWithRelations,
-	findByCondition,
-	findWithRelationsAndConditions,
-} from './find';
-import { deleteById, deleteByCondition } from './delete';
+import * as save from './save';
+import * as update from './update';
+import * as find from './find';
+import * as del from './delete';  // 'delete' is a reserved word
+import { executeSqlQuery } from './query';
+
 export const repository = {
-	save,
-	update,
-	updateOrInsert,
-	count,
-	findAll,
-	findById,
-	findOne,
-	findOneByCondition,
-	findWithRelations,
-	findByCondition,
-	findWithRelationsAndConditions,
-	deleteById,
-	deleteByCondition,
+  ...save,
+  ...update,
+  ...find,
+  ...del,
+  executeSqlQuery
 };

@@ -7,12 +7,14 @@ import {
 const columns = {
 	id: 'UUID PRIMARY KEY DEFAULT gen_random_uuid()',
 	gender: "gender DEFAULT 'M'",
-	sexualPreferences: "sexualPreferences DEFAULT 'B'",
 	bio: 'VarChar(255) DEFAULT NULL',
-	interests: 'interests[] DEFAULT NULL',
-	location: 'VarChar(255) DEFAULT NULL',
+	interests: 'VarChar(255)[] DEFAULT NULL',
 	pictures: 'VarChar(255)[] NOT NULL',
+	mainpicture: 'VarChar(255) DEFAULT NULL',
+	birthdate: 'Date DEFAULT NULL',
 	user_id: 'UUID NOT NULL',
+	created_at: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
+	updated_at: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
 };
 
 const foreignKey: foreignKey[] = [
@@ -28,14 +30,6 @@ const foreignKey: foreignKey[] = [
 export default {
 	syncTable: async () => {
 		await createType({ typeName: 'gender', values: ['M', 'F'] });
-		await createType({
-			typeName: 'sexualpreferences',
-			values: ['M', 'F', 'B'],
-		});
-		await createType({
-			typeName: 'interests',
-			values: ['VEGAN', 'GEEK', 'PIERCING'],
-		});
 		const userModel = createModel({
 			tableName: 'profile',
 			columns,

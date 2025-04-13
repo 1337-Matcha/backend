@@ -1,3 +1,6 @@
+import { LocationDTO } from "../../../shared/dtos";
+import { Gender } from "../../../shared/enums";
+
 // src/dtos/userDto.js
 export class CreateUserDto {
 	id?: string;
@@ -31,4 +34,20 @@ export class UpdateUserDto {
 		this.email = body.email;
 		this.username = body.username;
 	}
+}
+
+export class GetUserWithRelationsDTO {
+	firstname?: string;
+	lastname?: string;
+	username?: string;
+	gender?: Gender;
+	bio?: string;
+	birthdate?: Date;
+	mainPicture?: string;
+	pictures?: string[];
+	location?: LocationDTO;
+	sexualOrientation?: string;
+	sexualPreferences?: string[];
+	interests?: string[];
+	existingPictures?: string[];
 }

@@ -2,6 +2,7 @@ import * as userService from '../../user/services/user.service';
 import {
 	InvalidCredentialsException,
 	UserAlreadyExistsException,
+	UserAuthenticationProvider,
 } from '../../../shared/exceptions/user.exception';
 import {
 	PasswordMatchException,
@@ -22,9 +23,11 @@ import { RepositoryExceptionUpdate } from '../../../shared/exceptions/repository
 
 export const login = async (loginDTO: LoginDTO) => {
 	try {
-		const user = await userService.findByEmail(loginDTO.email);
+		console.log(loginDTO.email.toLowerCase())
+		const user = await userService.findByEmail(loginDTO.email.toLowerCase());
 
 		if (!user) throw new InvalidCredentialsException();
+		if (user.provider === 'google') throw new UserAuthenticationProvider();
 		const isMatch = await userService.comparePassword(
 			loginDTO.password,
 			user.password,
@@ -35,7 +38,11 @@ export const login = async (loginDTO: LoginDTO) => {
 			throw new AccountNotVerifiedException();
 		}
 		const { aToken, rToken } = await generateTokens(user);
-		const result = await userService.update({ rToken }, { id: user.id });
+		const result = await userService.update(
+			{ rToken },
+			{ id: user.id },
+			true,
+		);
 		if (!result) throw new RepositoryExceptionUpdate();
 		return { aToken, rToken };
 	} catch (err) {
@@ -69,7 +76,7 @@ export const generateTokens = async (user: any) => {
 
 export const register = async (registerDTO: CreateUserDto) => {
 	try {
-		const user = await userService.findByEmail(registerDTO.email);
+		const user = await userService.findByEmail(registerDTO.email.toLowerCase());
 
 		if (user) throw new UserAlreadyExistsException();
 
@@ -174,6 +181,7 @@ export const resetPasswordVerification = async (
 		const result = await userService.update(
 			{ password: hashedPassword },
 			{ id: userId },
+			true,
 		);
 		return result
 			? 'Password reseted successfully'
@@ -222,7 +230,11 @@ export async function verifyEmail(token: string): Promise<boolean> {
 			payload.sub,
 			process.env.PAYLOAD_ENCRYPTION_KEY || '',
 		);
-		const result = await userService.update({ verified: true }, { email });
+		const result = await userService.update(
+			{ verified: true },
+			{ email },
+			true,
+		);
 		return result;
 	} catch (err) {
 		throw err;

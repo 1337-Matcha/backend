@@ -1,50 +1,40 @@
-export enum Gender {
-	M = 'M',
-	F = 'F',
-}
-export enum SexualPreferences {
-	M = 'M',
-	F = 'F',
-	B = 'B',
-}
+import { LocationDTO } from "../../../shared/dtos";
+import { Gender } from "../../../shared/enums";
 
-export enum Interest {
-	VEGAN = 'vegan',
-	PIERCING = 'piercing',
-	GEEK = 'geek',
+export enum SexualPreferences {
+	Bisexual = 'bisexual',
+	Straight = 'straight',
+	Pansexual = 'pansexual',
+	Asexual = 'asexual',
+	Demisexual = 'demisexual',
+	Questioning = 'questioning',
 }
 
 export class ProfileDto {
-	id: string;
-	gender: Gender;
-	sexualPreferences: SexualPreferences;
-	bio: string;
-	interests: Interest;
-	location: string;
-	pictures: string[];
-
-	constructor(body: any) {
-		this.id = body.id;
-		this.gender = body.gender;
-		this.sexualPreferences = body.sexualPreferences;
-		this.bio = body.bio;
-		this.interests = body.interests;
-		this.location = body.location;
-		this.pictures = body.pictures;
-	}
-}
-
-export class ProfileUpdateDto {
-	id?: string;
+	user_id?: string;
 	gender?: Gender;
 	sexualPreferences?: SexualPreferences;
 	bio?: string;
-	interests?: Interest;
+	interests?: string[];
+	location?: LocationDTO;
+	pictures?: string[];
+	mainpicture?: string;
+	birthdate?: Date;
+}
+
+export class ProfileUpdateDto {
+	user_id?: string;
+	gender?: Gender;
+	sexualPreferences?: SexualPreferences;
+	bio?: string;
+	interests?: string[];
 	location?: string;
 	pictures?: string[];
+	mainpicture?: string;
+	birthdate?: Date;
 
 	constructor(body: any) {
-		this.id = body.id;
+		this.user_id = body.user_id;
 		this.bio = body.bio;
 		this.gender = body.gender;
 		this.interests = body.interests;

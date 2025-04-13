@@ -10,30 +10,44 @@ import cookieParser from 'cookie-parser';
 import passport from 'passport';
 import session from 'express-session';
 import cors from 'cors';
+import http from 'http';
+import { Server } from 'socket.io';
+import { setupWsRoutes } from './shared/routes/ws/index';
 
 async function bootstrap() {
 	try {
 		const app = express();
+		console.log(new Date());
+		const server = http.createServer(app);
+
+		const io = new Server(server, {
+			path: '/ws/socket.io',
+			cors: {
+				origin: process.env.CLIENT_URL?.split(',') || '*',
+				methods: ['GET', 'POST'],
+				credentials: true,
+			},
+		});
+		setupWsRoutes(io);
 		app.use(express.json());
 		app.use(cookieParser());
 		// cors
 		app.use(
 			cors({
-				origin: 'http://localhost:4200',
+				origin: process.env.CLIENT_URL?.split(',') || [],
 				credentials: true,
-			})
+			}),
 		);
 		app.use(
 			session({
 				secret: process.env.JWT_SECRET as string,
 				resave: false,
 				saveUninitialized: false,
-			})
+			}),
 		);
 		app.use(passport.initialize());
 		app.use(passport.session());
 		dotenv.config();
-
 		logger.info('Starting application...');
 
 		try {
@@ -57,7 +71,7 @@ async function bootstrap() {
 
 		// Start the server and listen on a specific port
 		const port = process.env.PORT || 3000;
-		app.listen(port, () => {
+		server.listen(port, () => {
 			logger.info(`Server is running on port ${port}`);
 		});
 

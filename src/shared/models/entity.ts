@@ -62,6 +62,7 @@ export const createModel = ({
 		},
 		async syncTable() {
 			try {
+				console.log(this.createTableQuery());
 				await (pool as pg.Pool).query(this.createTableQuery());
 			} catch (error) {
 				console.log('hereeeeeeeee entity', tableName);

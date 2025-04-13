@@ -30,3 +30,13 @@ export class UserNotFoundException extends Error {
 		this.statusCode = 404;
 	}
 }
+
+
+export class UserAuthenticationProvider extends Error {
+	statusCode: number;
+	constructor(message = 'Try Sign-in with Google.') {
+		super(message);
+		this.name = this.constructor.name;
+		this.statusCode = 401;
+	}
+}

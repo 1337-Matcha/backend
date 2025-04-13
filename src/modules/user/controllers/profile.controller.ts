@@ -1,5 +1,5 @@
 import * as profileService from '../services/profile.service';
-import { ProfileDto } from '../dto/profile.dto';
+import { ProfileDto, ProfileUpdateDto } from '../dto/profile.dto';
 import { Response } from 'express';
 import HttpStatus from 'http-status';
 
@@ -33,7 +33,7 @@ export const updateProfile = async (req: any, res: Response) => {
 	try {
 		req.body.id = req.userId;
 		const updatedProfile = await profileService.update(
-			req.body as ProfileDto,
+			req.body as ProfileUpdateDto,
 		);
 		res.status(HttpStatus.OK).json(updatedProfile);
 	} catch (err: any) {
